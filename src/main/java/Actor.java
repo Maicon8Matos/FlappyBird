@@ -42,4 +42,7 @@ public class Actor {
         this.height = height;
     }
 
+    public int getXoffset(){    return this.getPositionX() + this.getWidth();   }
+    public int getYoffset(){    return this.getPositionY() + this.getHeight();  }
+
 }
