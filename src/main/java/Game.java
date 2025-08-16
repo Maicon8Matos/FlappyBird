@@ -25,14 +25,18 @@ public class Game implements Runnable{
 
     public void run() {
 
+        float frameTime = (float) 1000 / FPS;
         long lastCheck = System.currentTimeMillis();
+        long timeNow = System.currentTimeMillis();
 
         while (true) {
-            long timeNow = System.currentTimeMillis();
-            if (timeNow - lastCheck >= 1_000 / this.FPS) {
+
+            if (timeNow - lastCheck >= frameTime) {
                 lastCheck = timeNow;
                 this.gamePanel.repaint();
             }
+
+            timeNow = System.currentTimeMillis();
         }
     }
 }

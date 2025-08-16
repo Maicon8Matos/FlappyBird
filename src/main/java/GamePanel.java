@@ -12,7 +12,8 @@ public class GamePanel extends JPanel implements KeyListener {
 
     private Bird bird = new Bird(64,  192, 64, 64);
     private Pipe topPipe, bottomPipe;
-    private int pipesWidth = 64, pipesHeight = 256, pipesDistance = 192, pipesScrollSpeed = -5;
+    private int pipesWidth = 64, pipesHeight = 256, pipesDistance = 192;
+    private int pipesScrollSpeed = -5, minScrollSpeed = -2, maxScrollSpeed = -10, currentScrollSpeed = -5;
     private int score;
 
     private Color bgColor = new Color(64, 128, 192);
@@ -20,7 +21,7 @@ public class GamePanel extends JPanel implements KeyListener {
     private Color actorsColor =  new Color(192, 192, 192);
     private Color nemesisColor = new Color(192, 128, 64);
 
-    private Font mainFont = new Font("verdana", Font.PLAIN, 20);
+    private Font fpsFont = new Font("Verdana", Font.PLAIN, 24);
     private Font scoreFont = new Font("Arial", Font.BOLD, 30);
 
     public GamePanel(Dimension dimension){
@@ -63,6 +64,7 @@ public class GamePanel extends JPanel implements KeyListener {
         }else {
             this.topPipe.initialPositionX();
             this.bottomPipe.setPositionX(this.topPipe.getPositionX());
+            this.score++;
         }
     }
 
@@ -75,13 +77,27 @@ public class GamePanel extends JPanel implements KeyListener {
         // VERTICAL MOVEMENT
         if(e.getKeyCode() == KeyEvent.VK_W || e.getKeyCode() == KeyEvent.VK_UP) {
             this.bird.fly();
-            this.repaint();
-        }else if(e.getKeyCode() == KeyEvent.VK_S || e.getKeyCode() == KeyEvent.VK_DOWN) {
-            this.pipesScrollSpeed *= -1;
-            this.repaint();
+        }
+
+        //  FAST FOWARD
+        if(e.getKeyCode() == KeyEvent.VK_D || e.getKeyCode() == KeyEvent.VK_RIGHT) {
+            this.pipesScrollSpeed = maxScrollSpeed;
+        }
+        //  SLOW FOWARD
+        if(e.getKeyCode() == KeyEvent.VK_A || e.getKeyCode() == KeyEvent.VK_LEFT) {
+            this.pipesScrollSpeed = minScrollSpeed;
         }
     }
 
     @Override
-    public void keyReleased(KeyEvent e) {}
+    public void keyReleased(KeyEvent e) {
+        //  RESET TO NORMAL SPEED from FAST FOWARD
+        if(e.getKeyCode() == KeyEvent.VK_D || e.getKeyCode() == KeyEvent.VK_RIGHT) {
+            this.pipesScrollSpeed = currentScrollSpeed;
+        }
+        //  RESET to NORMAL SPEED from SLOW FOWARD
+        if(e.getKeyCode() == KeyEvent.VK_A || e.getKeyCode() == KeyEvent.VK_LEFT) {
+            this.pipesScrollSpeed = currentScrollSpeed;
+        }
+    }
 }
