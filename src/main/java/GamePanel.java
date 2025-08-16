@@ -44,6 +44,7 @@ public class GamePanel extends JPanel implements KeyListener {
         //  BIRD
         g.setColor(actorsColor);
         g.fillRect(bird.getPositionX(), bird.getPositionY(), bird.getWidth(), bird.getHeight());
+        birdFall();
 
         //  Draw TOP and BOTTOM Pipes
         g.setColor(nemesisColor);
@@ -55,6 +56,16 @@ public class GamePanel extends JPanel implements KeyListener {
         g.setColor(scoreColor);
         g.setFont(scoreFont);
         g.drawString("SCORE: " + score, 8, 40);
+    }
+
+    public void birdFall(){
+
+        //  MAKE SURE THe BIRD is On Screen
+        if(this.bird.getPositionY() < this.getHeight() - this.bird.getHeight()){
+            //  Update BIRD PositionY
+            this.bird.fall();
+        }
+
     }
 
     public void movePipes(){
