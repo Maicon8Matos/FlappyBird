@@ -6,22 +6,30 @@ import java.awt.Graphics;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
+import java.util.Random;
+
 import javax.swing.JPanel;
 
 public class GamePanel extends JPanel implements KeyListener {
 
-    private Bird bird = new Bird(64,  192, 64, 64);
+    private boolean gameIsPaused = true;
+
+    private Bird bird = new Bird(64,  192, 64, 48);
     private Pipe topPipe, bottomPipe;
     private int pipesWidth = 64, pipesHeight = 256, pipesDistance = 192;
-    private int pipesScrollSpeed = -5, minScrollSpeed = -2, maxScrollSpeed = -10, currentScrollSpeed = -5;
+    private int pipesScrollSpeed = -5, initialScrollSpeed = -5, minScrollSpeed = -2, maxScrollSpeed = -10;
+    private Random random = new Random();
+
     private int score;
 
     private Color bgColor = new Color(64, 128, 192);
     private Color scoreColor = new Color(64, 255, 64);
     private Color actorsColor =  new Color(192, 192, 192);
     private Color nemesisColor = new Color(192, 128, 64);
+    private Color gameOverColor = new Color(192, 32, 32);
 
     private Font fpsFont = new Font("Verdana", Font.PLAIN, 24);
+    private Font gameOverFont = new Font("Arial", Font.BOLD, 30);
     private Font scoreFont = new Font("Arial", Font.BOLD, 30);
 
     public GamePanel(Dimension dimension){
@@ -44,26 +52,66 @@ public class GamePanel extends JPanel implements KeyListener {
         //  BIRD
         g.setColor(actorsColor);
         g.fillRect(bird.getPositionX(), bird.getPositionY(), bird.getWidth(), bird.getHeight());
-        birdFall();
+        //birdFall();
 
         //  Draw TOP and BOTTOM Pipes
         g.setColor(nemesisColor);
-        g.fillRect(topPipe.getPositionX(), topPipe.getPositionY(), topPipe.getWidth(), topPipe.getHeight());
+        g.fillRect(topPipe.getPositionX(), topPipe.getPositionY() + 8, topPipe.getWidth(), topPipe.getHeight());
         g.fillRect(bottomPipe.getPositionX(), bottomPipe.getPositionY(), bottomPipe.getWidth(), bottomPipe.getHeight());
-        movePipes();
+        //movePipes();
 
         //  SCORE
         g.setColor(scoreColor);
         g.setFont(scoreFont);
         g.drawString("SCORE: " + score, 8, 40);
+
+        //  GAME NOT PAUSED
+        if(!this.gameIsPaused){
+            birdFall();
+            movePipes();
+        }
+
+        //  Initial CONTROLS TIP Message
+        if (this.gameIsPaused && this.bird.isAlive){
+            g.setColor(actorsColor);
+            g.drawString("Press W or Up-Arrow to Fly!", 24, 96);
+        }
+
+        if(!this.bird.isAlive){
+            //  DIE Cause MESSAGE
+            g.setColor(gameOverColor);
+            g.setFont(gameOverFont);
+            g.drawString("YOU DIED from " + bird.getStatus(), 16, this.getHeight() / 2 + 16);
+
+            //  RESTART Keys MESSAGE
+            g.setColor(scoreColor);
+            g.setFont(this.scoreFont);
+            g.drawString("Press R or ESC to Restart!", 24, this.getWidth() / 2 - 16);
+        }
     }
 
     public void birdFall(){
 
-        //  MAKE SURE THe BIRD is On Screen
+        //  CHECK if THe BIRD is On Screen
         if(this.bird.getPositionY() < this.getHeight() - this.bird.getHeight()){
             //  Update BIRD PositionY
             this.bird.fall();
+        }
+
+        //GAME OVER - Floor Crash
+        if(this.bird.getPositionY() > this.getHeight() - this.bird.getHeight()){
+            this.bird.setPositionY(this.getHeight() - this.bird.getHeight());
+
+            if (this.bird.isAlive){
+                this.bird.die("Floor Crash!");
+                this.gameIsPaused = true;
+            }
+        }
+        //  GAME OVER - Fly Too High
+        if(this.bird.getPositionY() < 0){
+            this.bird.setPositionY(0);
+            this.bird.die("Lightning!");
+            this.gameIsPaused = true;
         }
 
     }
@@ -73,10 +121,28 @@ public class GamePanel extends JPanel implements KeyListener {
             this.topPipe.setPositionX(this.topPipe.getPositionX() + pipesScrollSpeed);
             this.bottomPipe.setPositionX(this.topPipe.getPositionX());
         }else {
+            this.topPipe.setHeight(this.random.nextInt(1, 6) * 64);
             this.topPipe.initialPositionX();
             this.bottomPipe.setPositionX(this.topPipe.getPositionX());
+            this.bottomPipe.setPositionY(this.topPipe.getYoffset() + this.pipesDistance);
+            this.bottomPipe.setHeight(this.getHeight() - this.bottomPipe.getPositionY()  - 8);
             this.score++;
         }
+    }
+
+    public void gameStart(){
+        this.score = 0;
+        this.gameIsPaused = false;
+        this.bird.restart();
+        this.topPipe.initialPositionX();
+        this.bottomPipe.initialPositionX();
+    }
+    public void gameRestart(){
+        this.score = 0;
+        this.bird.restart();
+        this.topPipe.initialPositionX();
+        this.topPipe.initialPositionY();
+        this.bottomPipe.initialPositionX();
     }
 
     @Override
@@ -87,7 +153,12 @@ public class GamePanel extends JPanel implements KeyListener {
 
         // VERTICAL MOVEMENT
         if(e.getKeyCode() == KeyEvent.VK_W || e.getKeyCode() == KeyEvent.VK_UP) {
-            this.bird.fly();
+            if(this.bird.isAlive) {
+                this.bird.fly();
+                if(this.gameIsPaused){
+                    this.gameStart();
+                }
+            }
         }
 
         //  FAST FOWARD
@@ -98,17 +169,24 @@ public class GamePanel extends JPanel implements KeyListener {
         if(e.getKeyCode() == KeyEvent.VK_A || e.getKeyCode() == KeyEvent.VK_LEFT) {
             this.pipesScrollSpeed = minScrollSpeed;
         }
+
+        //  RESET Bird to Origin PositionY
+        if(e.getKeyCode() == KeyEvent.VK_ESCAPE || e.getKeyCode() == KeyEvent.VK_R) {
+            if (!this.bird.isAlive){
+                this.gameRestart();
+            }
+        }
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
         //  RESET TO NORMAL SPEED from FAST FOWARD
         if(e.getKeyCode() == KeyEvent.VK_D || e.getKeyCode() == KeyEvent.VK_RIGHT) {
-            this.pipesScrollSpeed = currentScrollSpeed;
+            this.pipesScrollSpeed = initialScrollSpeed;
         }
         //  RESET to NORMAL SPEED from SLOW FOWARD
         if(e.getKeyCode() == KeyEvent.VK_A || e.getKeyCode() == KeyEvent.VK_LEFT) {
-            this.pipesScrollSpeed = currentScrollSpeed;
+            this.pipesScrollSpeed = initialScrollSpeed;
         }
     }
 }

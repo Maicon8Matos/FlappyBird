@@ -1,5 +1,8 @@
 public class Bird extends Actor{
 
+    public boolean isAlive = true;
+    private String status =  "Flying!";
+
     public final int MAX_SPEED_Y = 20;
     private int fallSpeed = 1;
     private int gravity = 1;
@@ -25,6 +28,18 @@ public class Bird extends Actor{
             this.fallSpeed += this.gravity;
         }
 
+    }
+    public void die(String cause){
+        this.isAlive = false;
+        this.status = cause;
+    }
+    public String getStatus(){
+        return this.status;
+    }
+    public void restart(){
+        this.setPositionY(192);
+        this.fallSpeed = -1;
+        this.isAlive = true;
     }
 
 
