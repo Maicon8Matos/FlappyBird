@@ -29,7 +29,7 @@ public class GamePanel extends JPanel implements KeyListener {
     private Color gameOverColor = new Color(192, 32, 32);
 
     private Font fpsFont = new Font("Verdana", Font.PLAIN, 24);
-    private Font gameOverFont = new Font("Arial", Font.BOLD, 30);
+    private Font gameOverFont = new Font("Arial", Font.BOLD, 40);
     private Font scoreFont = new Font("Arial", Font.BOLD, 30);
 
     public GamePanel(Dimension dimension){
@@ -71,23 +71,39 @@ public class GamePanel extends JPanel implements KeyListener {
             movePipes();
         }
 
-        //  Initial CONTROLS TIP Message
+        //  Start CONTROLS TIP Message
         if (this.gameIsPaused && this.bird.isAlive){
             g.setColor(actorsColor);
             g.drawString("Press W or Up-Arrow to Fly!", 24, 96);
         }
 
+        //  GAME OVER - TopPipe OR BottomPipe
+        if(this.colliding(this.bird, this.topPipe) || this.colliding(this.bird, this.bottomPipe)){
+            this.bird.die("Piped!");
+            this.gameIsPaused = true;
+        }
+
         if(!this.bird.isAlive){
-            //  DIE Cause MESSAGE
+            //  DEATH Cause MESSAGE
             g.setColor(gameOverColor);
             g.setFont(gameOverFont);
-            g.drawString("YOU DIED from " + bird.getStatus(), 16, this.getHeight() / 2 + 16);
+            g.drawString("YOU DIED!", 128, this.getHeight() / 2 + 16);
+            g.drawString("(" + this.bird.getStatus() + ")", 128, this.getHeight() / 2 + 64);
 
             //  RESTART Keys MESSAGE
             g.setColor(scoreColor);
             g.setFont(this.scoreFont);
             g.drawString("Press R or ESC to Restart!", 24, this.getWidth() / 2 - 16);
         }
+    }
+    //  COLLISION CHECK
+    private boolean colliding(Actor one, Actor two){
+        if(one.getXoffset() >= two.getPositionX() && two.getXoffset() > one.getPositionX()){
+            if(one.getYoffset() >= two.getPositionY() && two.getYoffset() > one.getPositionY()){
+                return true;
+            }
+        }
+        return false;
     }
 
     public void birdFall(){
